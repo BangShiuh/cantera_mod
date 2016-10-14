@@ -22,7 +22,8 @@ const size_t c_offset_U = 0; // axial velocity
 const size_t c_offset_V = 1; // strain rate
 const size_t c_offset_T = 2; // temperature
 const size_t c_offset_L = 3; // (1/r)dP/dr
-const size_t c_offset_Y = 4; // mass fractions
+const size_t c_offset_E = 4; // Electric potential
+const size_t c_offset_Y = 5; // mass fractions
 
 class Transport;
 
@@ -305,6 +306,10 @@ protected:
 
     doublereal X(const doublereal* x, size_t k, size_t j) const {
         return m_wtm[j]*Y(x,k,j)/m_wt[k];
+    }
+
+    doublereal E(const double* x, size_t j) const {
+        return x[index(c_offset_E, j)];
     }
 
     doublereal flux(size_t k, size_t j) const {
