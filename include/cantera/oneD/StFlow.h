@@ -85,6 +85,12 @@ public:
 		return m_do_ambipolar;
 	}
 
+    //! Turn Poisson equation on/off
+    void enableElectric(bool withElectric); 
+    bool withElectric() const {
+        return m_do_electric;
+    }
+
     //! Set the pressure. Since the flow equations are for the limit of small
     //! Mach number, the pressure is very nearly constant throughout the flow.
     void setPressure(doublereal p) {
@@ -308,7 +314,7 @@ protected:
         return m_wtm[j]*Y(x,k,j)/m_wt[k];
     }
 
-    doublereal E(const double* x, size_t j) const {
+    doublereal phi(const double* x, size_t j) const {
         return x[index(c_offset_E, j)];
     }
 
@@ -346,6 +352,12 @@ protected:
         doublereal c1 = m_tcon[j-1]*(T(x,j) - T(x,j-1));
         doublereal c2 = m_tcon[j]*(T(x,j+1) - T(x,j));
         return -2.0*(c2/(z(j+1) - z(j)) - c1/(z(j) - z(j-1)))/(z(j+1) - z(j-1));
+    }
+
+    doublereal dEdz(const doublereal* x, size_t j) const {
+        doublereal c1 = phi(x,j) - phi(x,j-1);
+        doublereal c2 = phi(x,j+1) - phi(x,j);
+        return -2.0*(c2/(z(j+1) - z(j)) - c1/(z(j) - z(j-1)))/(z(j+1) - z(j-1)); 
     }
 
     size_t mindex(size_t k, size_t j, size_t m) {
@@ -405,6 +417,7 @@ protected:
     std::vector<bool> m_do_energy;
     bool m_do_soret;
     bool m_do_ambipolar;
+    bool m_do_electric;
     std::vector<bool> m_do_species;
     bool m_do_multicomponent;
 

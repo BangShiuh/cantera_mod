@@ -202,6 +202,11 @@ void StFlow::enableAmbipolar(bool withAmbipolar)
 			   "require using a mixture-average transport model.");
     }
 } 
+
+void StFlow::enableElectric(bool withElectric)
+{
+    m_do_electric = withElectric;
+}
 	
 void StFlow::_getInitialSoln(double* x)
 {
@@ -391,7 +396,7 @@ void StFlow::eval(size_t jg, doublereal* xg,
             rsd[index(c_offset_V,0)] = V(x,0);
             rsd[index(c_offset_T,0)] = T(x,0);
             rsd[index(c_offset_L,0)] = -rho_u(x,0);
-            rsd[index(c_offset_E,0)] = E(x,0);
+            rsd[index(c_offset_E,0)] = phi(x,0);
 
             // The default boundary condition for species is zero flux. However,
             // the boundary object may modify this.
@@ -482,19 +487,20 @@ void StFlow::eval(size_t jg, doublereal* xg,
             //
             //    d2/dx^2 (V) = -e/eps_0 * sum(q_k*n_k)
             //-----------------------------------------------
-            /*if(m_do_electric) {
-                double sum = 0.0;
-                for (size_t k; k < m_nsp; k++) {
-                    sum += Avogadro * density(k) * x * m_speciesCharge[k] / m_mmw;
+            if(m_do_electric) {
+                doublereal sum = 0.0;
+                doublereal wtm = m_thermo->meanMolecularWeight();
+                for (size_t k = 0; k < m_nsp; k++) {
+                    sum += Avogadro * density(k) * X(x,k,j) * m_speciesCharge[k] / wtm;
                 }
-                rsd[index(m_offset_E,j)] = ElectronCharge / epsilon_0 * sum;
-                rsd[index(m_offset_E,j)] += -dEdz(x,j,m_offset_E);
-                diag[index(m_offset_E, j)] = 1;
-             */
-                rsd[index(c_offset_E,j)] = E(x,j);
+                rsd[index(c_offset_E,j)] = dEdz(x,j) - ElectronCharge / epsilon_0 * sum;
                 diag[index(c_offset_E, j)] = 1;
-        }
-    }
+            } else {
+                rsd[index(c_offset_E,j)] = phi(x,j) - phi(x,j-1);
+                diag[index(c_offset_E, j)] = 0;
+            }     
+        }    
+    }    
 }
 
 void StFlow::updateTransport(doublereal* x, size_t j0, size_t j1)
@@ -953,7 +959,7 @@ void AxiStagnFlow::evalRightBoundary(doublereal* x, doublereal* rsd,
     rsd[index(2,j)] = T(x,j);
     rsd[index(c_offset_L, j)] = lambda(x,j) - lambda(x,j-1);
     diag[index(c_offset_L, j)] = 0;
-    rsd[index(c_offset_E, j)] = E(x,j);
+    rsd[index(c_offset_E, j)] = phi(x,j);
     // diag[index(c_offset_E, j)] = 0;
     doublereal sum = 0.0;
     for (size_t k = 0; k < m_nsp; k++) {
@@ -1009,7 +1015,7 @@ void FreeFlame::evalRightBoundary(doublereal* x, doublereal* rsd,
     doublereal sum = 0.0;
     rsd[index(c_offset_L, j)] = lambda(x,j) - lambda(x,j-1);
     diag[index(c_offset_L, j)] = 0;
-    rsd[index(c_offset_E, j)] = E(x,j);
+    rsd[index(c_offset_E, j)] = phi(x,j);
     // diag[index(c_offset_E, j)] = 0;
     for (size_t k = 0; k < m_nsp; k++) {
         sum += Y(x,k,j);
