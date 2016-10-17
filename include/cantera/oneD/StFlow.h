@@ -91,6 +91,11 @@ public:
         return m_do_electric;
     }
 
+    //! Set volatage
+    void setBoundaryVolt(double volt) {
+         m_volt = volt;
+    }
+
     //! Set the pressure. Since the flow equations are for the limit of small
     //! Mach number, the pressure is very nearly constant throughout the flow.
     void setPressure(doublereal p) {
@@ -217,6 +222,7 @@ public:
      *  j-1, j, and j+1. This option is used to efficiently evaluate the
      *  Jacobian numerically.
      */
+    // mask is the boolean whether the equation has time derivative term (1) or not (0)
     virtual void eval(size_t j, doublereal* x, doublereal* r,
                       integer* mask, doublereal rdt);
 
@@ -443,6 +449,9 @@ protected:
     //! Update the transport properties at grid points in the range from `j0`
     //! to `j1`, based on solution `x`.
     void updateTransport(doublereal* x, size_t j0, size_t j1);
+
+    // The voltage on the right boundary
+    double m_volt;
 
 private:
     vector_fp m_ybar;

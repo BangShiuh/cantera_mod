@@ -24,10 +24,12 @@ StFlow::StFlow(IdealGasPhase* ph, size_t nsp, size_t points) :
     m_epsilon_right(0.0),
     m_do_soret(false),
     m_do_ambipolar(false),
+    m_do_electric(false),
     m_do_multicomponent(false),
     m_do_radiation(false),
     m_kExcessLeft(0),
-    m_kExcessRight(0)
+    m_kExcessRight(0),
+    m_volt(0)
 {
     m_type = cFlowType;
     m_points = points;
@@ -489,12 +491,11 @@ void StFlow::eval(size_t jg, doublereal* xg,
             //-----------------------------------------------
             if(m_do_electric) {
                 doublereal sum = 0.0;
-                doublereal wtm = m_thermo->meanMolecularWeight();
                 for (size_t k = 0; k < m_nsp; k++) {
-                    sum += Avogadro * density(k) * X(x,k,j) * m_speciesCharge[k] / wtm;
+                    sum += Avogadro * m_rho[j] * Y(x,k,j) * m_speciesCharge[k] / m_wt[k];
                 }
                 rsd[index(c_offset_E,j)] = dEdz(x,j) - ElectronCharge / epsilon_0 * sum;
-                diag[index(c_offset_E, j)] = 1;
+                diag[index(c_offset_E, j)] = 0;
             } else {
                 rsd[index(c_offset_E,j)] = phi(x,j) - phi(x,j-1);
                 diag[index(c_offset_E, j)] = 0;
@@ -959,8 +960,8 @@ void AxiStagnFlow::evalRightBoundary(doublereal* x, doublereal* rsd,
     rsd[index(2,j)] = T(x,j);
     rsd[index(c_offset_L, j)] = lambda(x,j) - lambda(x,j-1);
     diag[index(c_offset_L, j)] = 0;
-    rsd[index(c_offset_E, j)] = phi(x,j);
-    // diag[index(c_offset_E, j)] = 0;
+    rsd[index(c_offset_E, j)] = phi(x,j) - m_volt;
+    diag[index(c_offset_E, j)] = 0;
     doublereal sum = 0.0;
     for (size_t k = 0; k < m_nsp; k++) {
         sum += Y(x,k,j);
@@ -1015,8 +1016,9 @@ void FreeFlame::evalRightBoundary(doublereal* x, doublereal* rsd,
     doublereal sum = 0.0;
     rsd[index(c_offset_L, j)] = lambda(x,j) - lambda(x,j-1);
     diag[index(c_offset_L, j)] = 0;
-    rsd[index(c_offset_E, j)] = phi(x,j);
-    // diag[index(c_offset_E, j)] = 0;
+    // set the voltage 
+    rsd[index(c_offset_E, j)] = phi(x,j) - m_volt;
+    diag[index(c_offset_E, j)] = 0;
     for (size_t k = 0; k < m_nsp; k++) {
         sum += Y(x,k,j);
         rsd[index(k+c_offset_Y,j)] = m_flux(k,j-1) + rho_u(x,j)*Y(x,k,j);
