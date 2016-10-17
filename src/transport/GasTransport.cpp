@@ -215,6 +215,7 @@ void GasTransport::updateDiff_T()
             for (size_t j : m_kNeutral) {
                 m_bdiff(i,j) = exp(dot4(m_polytempvec, m_diffcoeffs[ic]));
                 ic++;
+                cout << "neutral-neutral diff: " << m_bdiff(i,j) << endl;
             }
         }
     } else {
@@ -223,6 +224,7 @@ void GasTransport::updateDiff_T()
                 m_bdiff(i,j) = m_temp * m_sqrt_t*dot5(m_polytempvec,
                                                       m_diffcoeffs[ic]);
                 ic++;
+                cout << "neutral-neutral diff: " << m_bdiff(i,j) << endl;
             }
         }
     }
@@ -235,6 +237,7 @@ void GasTransport::updateDiff_T()
     for (size_t i : m_kCharge) {
         for (size_t j : m_kCharge) {
             m_bdiff(i,j) = getCoulombDiffusion(i,j);
+            cout << "charge-charge diff: " << m_bdiff(i,j) << endl;
         }
     }
     // evaluate binary diffusion coefficients for charge-neutral interaction
@@ -246,6 +249,7 @@ void GasTransport::updateDiff_T()
                 m_bdiff(i,j) = getn64Diffusion(i,j);
             }
             m_bdiff(j,i) = m_bdiff(i,j);
+            cout << "charge-neutral diff: " << m_bdiff(i,j) << endl;
         }
     }
 

@@ -17,7 +17,7 @@ using fmt::print;
 int flamespeed(double phi)
 {
     try {
-        IdealGasMix gas("h2o2_ion.xml","ohmech");
+        IdealGasMix gas("h2o2_test.xml","ohmech");
 
         doublereal temp = 300.0; // K
         doublereal pressure = 1.0*OneAtm; //atm
@@ -29,10 +29,9 @@ int flamespeed(double phi)
         doublereal C_atoms = 0.0;
         doublereal H_atoms = 4.0;
         doublereal ax = C_atoms + H_atoms / 4.0;
-        doublereal fa_stoic = 1.0 / (4.76 * ax);
+        doublereal fa_stoic = 1.0 / (1.0 * ax);
         x[gas.speciesIndex("H2")] = 1.0;
-        x[gas.speciesIndex("O2")] = 0.21 / phi / fa_stoic;
-        x[gas.speciesIndex("AR")] = 0.79 / phi/ fa_stoic;
+        x[gas.speciesIndex("O2")] = 1.0 / phi / fa_stoic;
 
         gas.setState_TPX(temp, pressure, x.data());
         doublereal rho_in = gas.density();
@@ -154,13 +153,9 @@ int flamespeed(double phi)
         for (size_t n = 0; n < flow.nPoints(); n++) {
             Tvec.push_back(flame.value(flowdomain,flow.componentIndex("T"),n));
             H3Oxvec.push_back(flame.value(flowdomain,flow.componentIndex("H3O+"),n));
-            Oevec.push_back(flame.value(flowdomain,flow.componentIndex("O-"),n));
-            O2evec.push_back(flame.value(flowdomain,flow.componentIndex("O2-"),n));
             Uvec.push_back(flame.value(flowdomain,flow.componentIndex("u"),n));
             zvec.push_back(flow.grid(n));
-            H3OxChargeFlux.push_back(flow.chargeFlux(n,gas.speciesIndex("H3O+")));
-            OeChargeFlux.push_back(flow.chargeFlux(n,gas.speciesIndex("O-")));
-            O2eChargeFlux.push_back(flow.chargeFlux(n,gas.speciesIndex("O2-")));
+
             print("{:9.6f}\t{:8.3f}\t{:5.3f}\t{:7.5f}\n",
                   flow.grid(n), Tvec[n], Uvec[n], H3Oxvec[n]);
         }
@@ -169,12 +164,10 @@ int flamespeed(double phi)
         print("Flame speed for phi={} is {} m/s.\n", phi, Uvec[0]);
 
         std::ofstream outfile("flamespeed.csv", std::ios::trunc);
-        outfile << "  Grid, Temperature, Uvec, H3O+, O-, O2-, cf H3O+, cf O-, cf O2- \n";
+        outfile << "  Grid, Temperature, Uvec, H3O+ \n";
         for (size_t n = 0; n < flow.nPoints(); n++) {
-            print(outfile, " {:11.3e}, {:11.3e}, {:11.3e}, {:11.3e}, {:11.3e},",
-                  flow.grid(n), Tvec[n], Uvec[n], H3Oxvec[n], Oevec[n] );
-            print(outfile, " {:11.3e}, {:11.3e}, {:11.3e}, {:11.3e}\n",
-                  O2evec[n], H3OxChargeFlux[n], OeChargeFlux[n], O2eChargeFlux[n] );
+            print(outfile, " {:11.3e}, {:11.3e}, {:11.3e}, {:11.3e}",
+                  flow.grid(n), Tvec[n], Uvec[n], H3Oxvec[n]  );
         }
     } catch (CanteraError& err) {
         std::cerr << err.what() << std::endl;
