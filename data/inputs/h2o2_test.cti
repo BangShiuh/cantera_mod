@@ -302,7 +302,4 @@ reaction('2 HO2 <=> O2 + H2O2', [4.200000e+14, 0.0, 12000.0],
 reaction('OH + HO2 <=> O2 + H2O', [5.000000e+15, 0.0, 17330.0],
          options='duplicate')
 
-# Reaction 29
-reaction('H3O+ + E <=> H2O + H', [2.291000e+18, -0.5, 0.0])
-
 
