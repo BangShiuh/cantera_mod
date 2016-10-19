@@ -573,6 +573,7 @@ void StFlow::updateDiffFluxes(const doublereal* x, size_t j0, size_t j1)
             for (size_t k = 0; k < m_nsp; k++) {
                 m_flux(k,j) = m_wt[k]*(rho*m_diff[k+m_nsp*j]/wtm);
                 m_flux(k,j) *= (X(x,k,j) - X(x,k,j+1))/dz;
+                //m_flux(k,j) *= (X(x,k,j) - X(x,k,j+1))/dz + mobility * rho * Y(x,k,j) * E;
                 sum -= m_flux(k,j);               
             }
             // correction flux to insure that \sum_k Y_k V_k = 0.

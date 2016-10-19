@@ -372,6 +372,61 @@ void GasTransport::getMixDiffCoeffsMass(doublereal* const d)
     }
 }
 
+/*
+void GasTransport::getBinaryMobilities(const size_t ld, doublereal* const d)
+{
+    update_T();
+    // if necessary, evaluate the binary diffusion coefficients from the polynomial fits
+    if (!m_bindiff_ok) {
+        updateDiff_T();
+    }
+    if (ld < m_nsp) {
+        throw CanteraError(" MixTransport::getBinaryDiffCoeffs()", "ld is too small");
+    }
+    doublereal rp = 1.0/m_thermo->pressure();
+    for (size_t i = 0; i < m_nsp; i++) {
+        for (size_t j = 0; j < m_nsp; j++) {
+            d[ld*j + i] = rp * m_bdiff(i,j) * ElectronCharge / (Boltzmann * m_temp);
+        }
+    }
+}
+
+void GasTransport::getMixDiffCoeffs(doublereal* const d)
+{
+    update_T();
+    update_C();
+
+    // update the binary diffusion coefficients if necessary
+    if (!m_bindiff_ok) {
+        updateDiff_T();
+    }
+
+    doublereal mmw = m_thermo->meanMolecularWeight();
+    doublereal sumxw = 0.0;
+    doublereal p = m_thermo->pressure();
+    if (m_nsp == 1) {
+        d[0] = m_bdiff(0,0) / p * ElectronCharge / (Boltzmann * m_temp);
+    } else {
+        for (size_t k = 0; k < m_nsp; k++) {
+            sumxw += m_molefracs[k] * m_mw[k];
+        }
+        for (size_t k = 0; k < m_nsp; k++) {
+            double sum2 = 0.0;
+            for (size_t j = 0; j < m_nsp; j++) {
+                if (j != k) {
+                    sum2 += m_molefracs[j] / m_bdiff(j,k);
+                }
+            }
+            if (sum2 <= 0.0) {
+                d[k] = m_bdiff(k,k) / p;
+            } else {
+                d[k] = (sumxw - m_molefracs[k] * m_mw[k])/(p * mmw * sum2);
+            }
+        }
+    }
+}
+*/
+
 void GasTransport::init(thermo_t* thermo, int mode, int log_level)
 {
     m_thermo = thermo;
